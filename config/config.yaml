@@ -1,0 +1,135 @@
+# ─── Project Configuration ────────────────────────────────────
+project:
+  name: "House Price Prediction"
+  version: "1.0.0"
+  author: "Your Name"
+  description: "ML model to predict house prices"
+
+# ─── Data Configuration ───────────────────────────────────────
+data:
+  raw_data_path: "data/raw/housing_data.csv"
+  train_data_path: "data/processed/train_data.csv"
+  test_data_path: "data/processed/test_data.csv"
+  target_column: "SalePrice"
+  test_size: 0.2
+  random_state: 42
+  
+  # Feature Categories
+  numerical_features:
+    - "LotArea"
+    - "YearBuilt"
+    - "YearRemodAdd"
+    - "TotalBsmtSF"
+    - "GrLivArea"
+    - "FullBath"
+    - "HalfBath"
+    - "BedroomAbvGr"
+    - "TotRmsAbvGrd"
+    - "GarageArea"
+    - "PoolArea"
+    - "OverallQual"
+    - "OverallCond"
+
+  categorical_features:
+    - "MSZoning"
+    - "Street"
+    - "LotShape"
+    - "LandContour"
+    - "Utilities"
+    - "Neighborhood"
+    - "BldgType"
+    - "HouseStyle"
+    - "RoofStyle"
+    - "ExterQual"
+    - "HeatingQC"
+    - "KitchenQual"
+    - "GarageType"
+    - "SaleCondition"
+
+  # Missing Value Strategy
+  missing_values:
+    numerical_strategy: "median"
+    categorical_strategy: "most_frequent"
+
+# ─── Model Configuration ──────────────────────────────────────
+model:
+  save_path: "models/best_model.pkl"
+  scaler_path: "models/scaler.pkl"
+# ─── Model Configuration ──────────────────────────────────────
+# model:
+#   save_path: "D:\\STUDY\\Programming\\project\\house-price-prediction\\models\\best_model.pkl"
+#   scaler_path: "D:\\STUDY\\Programming\\project\\house-price-prediction\\models\\scaler.pkl"
+  
+  # Models to Train
+  models:
+    linear_regression:
+      enabled: true
+      params: {}
+      
+    ridge:
+      enabled: true
+      params:
+        alpha: [0.1, 1.0, 10.0, 100.0]
+        
+    lasso:
+      enabled: true
+      params:
+        alpha: [0.001, 0.01, 0.1, 1.0]
+        
+    random_forest:
+      enabled: true
+      params:
+        n_estimators: [100, 200, 300]
+        max_depth: [null, 10, 20, 30]
+        min_samples_split: [2, 5, 10]
+        min_samples_leaf: [1, 2, 4]
+        
+    gradient_boosting:
+      enabled: true
+      params:
+        n_estimators: [100, 200, 300]
+        learning_rate: [0.01, 0.05, 0.1]
+        max_depth: [3, 5, 7]
+        
+    xgboost:
+      enabled: true
+      params:
+        n_estimators: [100, 200, 300]
+        learning_rate: [0.01, 0.05, 0.1]
+        max_depth: [3, 5, 7]
+        subsample: [0.8, 0.9, 1.0]
+        colsample_bytree: [0.8, 0.9, 1.0]
+
+  # Cross Validation
+  cv:
+    n_splits: 5
+    scoring: "neg_root_mean_squared_error"
+    verbose: 1
+
+  # Best Model Selection
+  selection_metric: "r2_score"
+  best_model: "xgboost"
+
+# ─── Evaluation Metrics ───────────────────────────────────────
+evaluation:
+  metrics:
+    - "r2_score"
+    - "rmse"
+    - "mae"
+    - "mape"
+  threshold:
+    r2_score: 0.85
+    rmse: 30000
+
+# ─── Logging Configuration ────────────────────────────────────
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/project.log"
+
+# ─── Flask App Configuration ──────────────────────────────────
+app:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+  secret_key: "your-secret-key-here"

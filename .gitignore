@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+.env.*                  # catches .env.local, .env.production, etc.
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Data files
+data/raw/*.csv
+data/processed/*.csv
+*.pkl
+*.joblib
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Models (large files)
+models/*.pkl
+models/*.joblib
+
+# Reports
+# reports/figures/*.png

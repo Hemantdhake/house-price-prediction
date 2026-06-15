@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🏠 House Price Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────────────── -->
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">🏠 HousePrice<span>AI</span></div>
+            <nav class="nav">
+                <a href="/">Home</a>
+                <a href="/api/model-info" target="_blank">Model Info</a>
+                <a href="/health" target="_blank">API Health</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- ─── Hero ─────────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="container">
+        <h1>House Price <span class="highlight">Prediction</span></h1>
+        <p class="subtitle">
+            Powered by XGBoost · R² Score: 0.93 · RMSE: $22,450
+        </p>
+
+        {% if not model_loaded %}
+        <div class="alert alert-warning">
+            ⚠️ Model not loaded. Please run <code>python src/model.py</code> first.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ─── Main Content ─────────────────────────────────────────── -->
+<main class="main">
+    <div class="container">
+        <div class="grid">
+
+            <!-- ── Prediction Form ───────────────────────────── -->
+            <div class="card form-card">
+                <div class="card-header">
+                    <h2>🏡 Enter House Details</h2>
+                    <p>Fill in the property details to get an instant price estimate</p>
+                </div>
+
+                <form action="/predict" method="POST" class="prediction-form">
+
+                    <!-- Row 1: Property Size -->
+                    <div class="form-section">
+                        <h3>📐 Property Size</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lot_area">Lot Area (sq ft)</label>
+                                <input
+                                    type="number"
+                                    id="lot_area"
+                                    name="lot_area"
+                                    value="{{ input_data.LotArea if input_data else 8500 }}"
+                                    min="1000"
+                                    max="100000"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="living_area">Living Area (sq ft)</label>
+                                <input
+                                    type="number"
+                                    id="living_area"
+                                    name="living_area"
+                                    value="{{ input_data.GrLivArea if input_data else 1500 }}"
+                                    min="300"
+                                    max="8000"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="basement_sf">Basement Area (sq ft)</label>
+                                <input
+                                    type="number"
+                                    id="basement_sf"
+                                    name="basement_sf"
+                                    value="{{ input_data.TotalBsmtSF if input_data else 800 }}"
+                                    min="0"
+                                    max="5000"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="garage_area">Garage Area (sq ft)</label>
+                                <input
+                                    type="number"
+                                    id="garage_area"
+                                    name="garage_area"
+                                    value="{{ input_data.GarageArea if input_data else 400 }}"
+                                    min="0"
+                                    max="1500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Year Information -->
+                    <div class="form-section">
+                        <h3>📅 Year Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="year_built">Year Built</label>
+                                <input
+                                    type="number"
+                                    id="year_built"
+                                    name="year_built"
+                                    value="{{ input_data.YearBuilt if input_data else 2000 }}"
+                                    min="1900"
+                                    max="2024"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="year_remod">Year Remodeled</label>
+                                <input
+                                    type="number"
+                                    id="year_remod"
+                                    name="year_remod"
+                                    value="{{ input_data.YearRemodAdd if input_data else 2000 }}"
+                                    min="1900"
+                                    max="2024"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Rooms -->
+                    <div class="form-section">
+                        <h3>🛋️ Room Details</h3>
+                        <div class="form-row three-col">
+                            <div class="form-group">
+                                <label for="bedrooms">Bedrooms</label>
+                                <input
+                                    type="number"
+                                    id="bedrooms"
+                                    name="bedrooms"
+                                    value="{{ input_data.BedroomAbvGr if input_data else 3 }}"
+                                    min="0"
+                                    max="10"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="full_bath">Full Baths</label>
+                                <input
+                                    type="number"
+                                    id="full_bath"
+                                    name="full_bath"
+                                    value="{{ input_data.FullBath if input_data else 2 }}"
+                                    min="0"
+                                    max="5"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="half_bath">Half Baths</label>
+                                <input
+                                    type="number"
+                                    id="half_bath"
+                                    name="half_bath"
+                                    value="{{ input_data.HalfBath if input_data else 0 }}"
+                                    min="0"
+                                    max="3"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="total_rooms">Total Rooms</label>
+                                <input
+                                    type="number"
+                                    id="total_rooms"
+                                    name="total_rooms"
+                                    value="{{ input_data.TotRmsAbvGrd if input_data else 6 }}"
+                                    min="2"
+                                    max="15"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="pool_area">Pool Area (sq ft)</label>
+                                <input
+                                    type="number"
+                                    id="pool_area"
+                                    name="pool_area"
+                                    value="{{ input_data.PoolArea if input_data else 0 }}"
+                                    min="0"
+                                    max="1000"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Quality -->
+                    <div class="form-section">
+                        <h3>⭐ Quality Ratings</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="overall_qual">
+                                    Overall Quality
+                                    <span class="badge">1-10</span>
+                                </label>
+                                <div class="range-container">
+                                    <input
+                                        type="range"
+                                        id="overall_qual"
+                                        name="overall_qual"
+                                        value="{{ input_data.OverallQual if input_data else 5 }}"
+                                        min="1"
+                                        max="10"
+                                        oninput="updateRangeValue('overall_qual_val', this.value)"
+                                    />
+                                    <span id="overall_qual_val" class="range-value">
+                                        {{ input_data.OverallQual if input_data else 5 }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="overall_cond">
+                                    Overall Condition
+                                    <span class="badge">1-10</span>
+                                </label>
+                                <div class="range-container">
+                                    <input
+                                        type="range"
+                                        id="overall_cond"
+                                        name="overall_cond"
+                                        value="{{ input_data.OverallCond if input_data else 5 }}"
+                                        min="1"
+                                        max="10"
+                                        oninput="updateRangeValue('overall_cond_val', this.value)"
+                                    />
+                                    <span id="overall_cond_val" class="range-value">
+                                        {{ input_data.OverallCond if input_data else 5 }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large">
+                        🔮 Predict Price
+                    </button>
+
+                </form>
+            </div>
+
+            <!-- ── Result Panel ──────────────────────────────── -->
+            <div class="result-panel">
+
+                <!-- Prediction Result -->
+                {% if prediction %}
+                <div class="card result-card animate-in">
+                    <div class="result-header">
+                        <span class="result-icon">🏠</span>
+                        <h3>Estimated Price</h3>
+                    </div>
+                    <div class="price-display">
+                        {{ prediction.predicted_price_formatted }}
+                    </div>
+                    <div class="price-range">
+                        <div class="range-item">
+                            <span class="range-label">🔽 Low</span>
+                            <span class="range-price">{{ prediction.price_range.low }}</span>
+                        </div>
+                        <div class="range-divider">—</div>
+                        <div class="range-item">
+                            <span class="range-label">🔼 High</span>
+                            <span class="range-price">{{ prediction.price_range.high }}</span>
+                        </div>
+                    </div>
+                    <div class="confidence-badge">
+                        Confidence Interval: {{ prediction.confidence }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Error Message -->
+                {% if error %}
+                <div class="card error-card">
+                    <span>❌</span>
+                    <p>{{ error }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Model Stats Card -->
+                <div class="card stats-card">
+                    <h3>📊 Model Performance</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value">0.93</span>
+                            <span class="stat-label">R² Score</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">$22,450</span>
+                            <span class="stat-label">RMSE</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">$15,680</span>
+                            <span class="stat-label">MAE</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">XGBoost</span>
+                            <span class="stat-label">Algorithm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Tips Card -->
+                <div class="card tips-card">
+                    <h3>💡 Price Boosters</h3>
+                    <ul class="tips-list">
+                        <li>🌟 Higher overall quality = significant price increase</li>
+                        <li>📐 Larger living area directly impacts price</li>
+                        <li>🏗️ Newer construction commands premium pricing</li>
+                        <li>🛁 Additional bathrooms add value</li>
+                        <li>🚗 Garage space increases desirability</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- ─── Footer ───────────────────────────────────────────────── -->
+<footer class="footer">
+    <div class="container">
+        <p>🏠 House Price Predictor | Built with Scikit-learn & Flask</p>
+        <p>
+            <a href="/api/predict">API Docs</a> |
+            <a href="/health">Health Check</a> |
+            <a href="https://github.com/yourusername/house-price-prediction">GitHub</a>
+        </p>
+    </div>
+</footer>
+
+<!-- ─── Scripts ──────────────────────────────────────────────── -->
+<script>
+    function updateRangeValue(elementId, value) {
+        document.getElementById(elementId).textContent = value;
+    }
+
+    // Animate result card on load
+    document.addEventListener("DOMContentLoaded", function () {
+        const resultCard = document.querySelector(".result-card");
+        if (resultCard) {
+            resultCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+</script>
+
+</body>
+</html>
