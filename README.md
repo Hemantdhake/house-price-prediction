@@ -310,4 +310,4 @@ streamlit run app/app.py
 ## 👤 Author
 
 **Hemant Dhake**  
-House Price Prediction — v1.0.0
+House Price Prediction Model
